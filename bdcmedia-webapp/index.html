@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BDC Media Center</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; text-align: center; }
+    input, button { margin: 10px; }
+    img { margin-top: 20px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Upload File to BDC Media Store</h2>
+  <input type="file" id="fileInput" accept="image/*" />
+  <button onclick="uploadFile()">Upload</button>
+  <div id="result"></div>
+
+  <script>
+    async function uploadFile() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) return alert('Please select a file.');
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+
+        const response = await fetch('/api/UploadFunction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: file.name, fileContent: base64 })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          document.getElementById('result').innerHTML =
+            `<p>✅ Uploaded successfully!</p>
+             <a href="${data.url}" target="_blank">${data.url}</a><br>
+             <img src="${data.url}" width="300">`;
+        } else {
+          document.getElementById('result').innerHTML = `<p style="color:red;">❌ Error: ${data}</p>`;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+</html>
